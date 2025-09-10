@@ -1,31 +1,31 @@
-import { useState } from "react";
-import { Form, redirect, useActionData } from "react-router-dom";
-import { createOrder } from "../../services/apiRestaurant";
+import { useState } from 'react';
+import { Form, redirect, useActionData } from 'react-router-dom';
+import { createOrder } from '../../services/apiRestaurant';
 
 // https://uibakery.io/regex-library/phone-number
 const isValidPhone = (str) =>
   /^\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/.test(
-    str
+    str,
   );
 
 const fakeCart = [
   {
     pizzaId: 12,
-    name: "Mediterranean",
+    name: 'Mediterranean',
     quantity: 2,
     unitPrice: 16,
     totalPrice: 32,
   },
   {
     pizzaId: 6,
-    name: "Vegetale",
+    name: 'Vegetale',
     quantity: 1,
     unitPrice: 13,
     totalPrice: 13,
   },
   {
     pizzaId: 11,
-    name: "Spinach and Mushroom",
+    name: 'Spinach and Mushroom',
     quantity: 1,
     unitPrice: 15,
     totalPrice: 15,
@@ -43,18 +43,18 @@ function CreateOrder() {
 
       <Form method="POST">
         <div>
-          <label>First Name</label>
-          <input type="text" name="customer" required />
-          <div style={{ color: "red" }}>
-            {formActionData?.name && formActionData.name}
+          <label>Full Name</label>
+          <div style={{ color: 'red' }}>
+            <input type="text" name="customer" required className="input" />
+            <div>{formActionData?.name && formActionData.name}</div>
           </div>
         </div>
 
         <div>
           <label>Phone number</label>
           <div>
-            <input type="tel" name="phone" required />
-            <div style={{ color: "red" }}>
+            <input type="tel" name="phone" required className="input" />
+            <div style={{ color: 'red' }}>
               {formActionData?.phone && formActionData.phone}
             </div>
           </div>
@@ -63,24 +63,20 @@ function CreateOrder() {
         <div>
           <label>Address</label>
           <div>
-            <input type="text" name="address" required />
+            <input type="text" name="address" required className="input" />
           </div>
         </div>
 
         <div>
-          <input
-            type="checkbox"
-            name="priority"
-            id="priority"
-            // value={withPriority}
-            // onChange={(e) => setWithPriority(e.target.checked)}
-          />
+          <input type="checkbox" name="priority" id="priority" />
           <label htmlFor="priority">Want to yo give your order priority?</label>
         </div>
 
         <div>
           <input hidden name="cart" value={JSON.stringify(cart)} />
-          <button>Order now</button>
+          <button className="focus: inline-block rounded-full bg-yellow-400 px-4 py-3 font-semibold uppercase tracking-wide ring-offset-2 transition-colors duration-300 hover:bg-yellow-300 focus:outline-none focus:ring focus:ring-yellow-300">
+            Order now
+          </button>
         </div>
       </Form>
     </div>
@@ -93,15 +89,15 @@ export async function action({ request }) {
   const payload = {
     ...data,
     cart: JSON.parse(data.cart),
-    priority: data.priority === "on",
+    priority: data.priority === 'on',
   };
   console.log(payload);
   const errors = {};
   if (!isValidPhone(payload.phone)) {
-    errors.phone = "Please Provide a Valid Phone Number";
+    errors.phone = 'Please Provide a Valid Phone Number';
   }
-  if (payload.customer.split(" ").length === 1) {
-    errors.name = "Please Provide a Full Name";
+  if (payload.customer.split(' ').length === 1) {
+    errors.name = 'Please Provide a Full Name';
   }
 
   if (Object.keys(errors).length > 0) return errors;

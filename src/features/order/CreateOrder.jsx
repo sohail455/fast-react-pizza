@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { Form, redirect, useActionData, useNavigation } from 'react-router-dom';
 import { createOrder } from '../../services/apiRestaurant';
 import Button from '../../ui/Button';
+import { useDispatch, useSelector } from 'react-redux';
+import { clearCart, getCart, getCartTotalPrice } from '../cart/cartSlice';
+import store from '../../store';
+import { formatCurrency } from '../../utils/helpers';
 
 // https://uibakery.io/regex-library/phone-number
 const isValidPhone = (str) =>
@@ -9,76 +13,82 @@ const isValidPhone = (str) =>
     str,
   );
 
-const fakeCart = [
-  {
-    pizzaId: 12,
-    name: 'Mediterranean',
-    quantity: 2,
-    unitPrice: 16,
-    totalPrice: 32,
-  },
-  {
-    pizzaId: 6,
-    name: 'Vegetale',
-    quantity: 1,
-    unitPrice: 13,
-    totalPrice: 13,
-  },
-  {
-    pizzaId: 11,
-    name: 'Spinach and Mushroom',
-    quantity: 1,
-    unitPrice: 15,
-    totalPrice: 15,
-  },
-];
-
 function CreateOrder() {
-  // const [withPriority, setWithPriority] = useState(false);
-  const cart = fakeCart;
+  const [withPriority, setWithPriority] = useState(false);
+  const dispatch = useDispatch();
+  const cuurrentTotalCart = useSelector(getCartTotalPrice);
+  const priortyCost = cuurrentTotalCart * 0.2;
+  const cart = useSelector(getCart);
+  console.log(cart);
   const formActionData = useActionData();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   console.log(navigation);
+  const userName = useSelector((state) => state.user.userName);
   return (
-    <div>
-      <h2>Ready to order? Let go!</h2>
+    <div className="mt-10">
+      <h2 className="mb-5 text-[22px] font-bold">Ready to order? Let go!</h2>
 
       <Form method="POST">
-        <div>
-          <label>Full Name</label>
-          <div style={{ color: 'red' }}>
-            <input type="text" name="customer" required className="input" />
-            <div>{formActionData?.name && formActionData.name}</div>
-          </div>
+        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center">
+          <label className="text-lg font-semibold sm:basis-40">
+            First Name
+          </label>
+          <input
+            type="text"
+            name="customer"
+            required
+            className="input grow"
+            defaultValue={userName}
+          />
         </div>
 
-        <div>
-          <label>Phone number</label>
-          <div>
-            <input type="tel" name="phone" required className="input" />
+        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center">
+          <label className="text-lg font-semibold sm:basis-40">
+            Phone number
+          </label>
+          <div className="grow">
+            <input type="tel" name="phone" required className="input w-full" />
             <div style={{ color: 'red' }}>
               {formActionData?.phone && formActionData.phone}
             </div>
           </div>
         </div>
 
-        <div>
-          <label>Address</label>
-          <div>
-            <input type="text" name="address" required className="input" />
+        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center">
+          <label className="text-lg font-semibold sm:basis-40">Address</label>
+          <div className="grow">
+            <input
+              type="text"
+              name="address"
+              required
+              className="input w-full"
+            />
           </div>
         </div>
 
-        <div>
-          <input type="checkbox" name="priority" id="priority" />
-          <label htmlFor="priority">Want to yo give your order priority?</label>
+        <div className="mb-5 flex items-center gap-4">
+          <input
+            type="checkbox"
+            name="priority"
+            id="priority"
+            value={withPriority}
+            onChange={(e) => setWithPriority(e.target.checked)}
+            className="h-5 w-5 bg-yellow-100 accent-yellow-500 checked:bg-yellow-300"
+          />
+          <label htmlFor="priority" className="text-lg font-semibold">
+            Want to yo give your order priority?
+          </label>
         </div>
 
         <div>
-          <input hidden name="cart" value={JSON.stringify(cart)} />
+          <input hidden name="cart" defaultValue={JSON.stringify(cart)} />
 
-          <Button disabled={isSubmitting}>Order Now</Button>
+          <Button type="primary" disabled={isSubmitting}>
+            {isSubmitting
+              ? '...Ordering'
+              : `Order Now From ${formatCurrency(withPriority ? cuurrentTotalCart + priortyCost : cuurrentTotalCart)}`}
+          </Button>
         </div>
       </Form>
     </div>
@@ -90,21 +100,24 @@ export async function action({ request }) {
   const data = Object.fromEntries(formData);
   const payload = {
     ...data,
-    cart: JSON.parse(data.cart),
-    priority: data.priority === 'on',
+    cart: JSON.parse(data.cart).map(({ itemId, ...rest }) => ({
+      ...rest,
+      pizzaId: itemId,
+    })),
+    priority: data.priority === 'true',
   };
+
   console.log(payload);
   const errors = {};
   if (!isValidPhone(payload.phone)) {
     errors.phone = 'Please Provide a Valid Phone Number';
   }
-  if (payload.customer.split(' ').length === 1) {
-    errors.name = 'Please Provide a Full Name';
-  }
 
   if (Object.keys(errors).length > 0) return errors;
   //if everything is ok
   const order = await createOrder(payload);
+
+  store.dispatch(clearCart());
 
   return redirect(`/order/${order.id}`);
 }

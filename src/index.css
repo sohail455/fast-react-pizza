@@ -3,7 +3,7 @@
 @tailwind utilities;
 @layer components {
   .input {
-    @apply rounded-full px-3 py-2;
+    @apply rounded-full px-3 py-2.5;
   }
 }
 body {

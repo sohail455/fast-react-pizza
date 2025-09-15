@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { clearCart, getCart, getCartTotalPrice } from '../cart/cartSlice';
 import store from '../../store';
 import { formatCurrency } from '../../utils/helpers';
+import { fetchLocation } from '../user/userSlice';
 
 // https://uibakery.io/regex-library/phone-number
 const isValidPhone = (str) =>
@@ -24,7 +25,10 @@ function CreateOrder() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   console.log(navigation);
-  const userName = useSelector((state) => state.user.userName);
+  const { userName, position, address, error, status } = useSelector(
+    (state) => state.user,
+  );
+  const isLoadingPosition = status === 'loading';
   return (
     <div className="mt-10">
       <h2 className="mb-5 text-[22px] font-bold">Ready to order? Let go!</h2>
@@ -55,7 +59,7 @@ function CreateOrder() {
           </div>
         </div>
 
-        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center">
+        <div className="relative mb-10 flex flex-col gap-1 sm:flex-row sm:items-center">
           <label className="text-lg font-semibold sm:basis-40">Address</label>
           <div className="grow">
             <input
@@ -63,8 +67,26 @@ function CreateOrder() {
               name="address"
               required
               className="input w-full"
+              defaultValue={address}
             />
+            {error && (
+              <p className="absolute left-[180px] text-red-600">{error}</p>
+            )}
           </div>
+          {!position && !error && (
+            <span className="absolute right-[3px] top-9 md:top-1">
+              <Button
+                type="small"
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(fetchLocation());
+                }}
+                disabled={isLoadingPosition}
+              >
+                GetLocation
+              </Button>
+            </span>
+          )}
         </div>
 
         <div className="mb-5 flex items-center gap-4">

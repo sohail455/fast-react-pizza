@@ -9,12 +9,13 @@ import {
 } from '../../utils/helpers';
 import OrderItem from './OrderItem';
 import { useEffect } from 'react';
+import MakePriority from './MakePriority';
 
 function Order() {
   const fetcher = useFetcher();
   useEffect(
     function () {
-      if (!fetcher.data || fetcher.state === 'idle') fetcher.load('/menu');
+      if (!fetcher.data && fetcher.state === 'idle') fetcher.load('/menu');
     },
     [fetcher],
   );
@@ -61,7 +62,7 @@ function Order() {
         {cart.map((pizza) => (
           <OrderItem
             item={pizza}
-            key={pizza.id}
+            key={pizza.pizzaId}
             isLoadingIngredients={fetcher.state === 'loading'}
             ingredients={
               fetcher.data
@@ -84,6 +85,7 @@ function Order() {
           To pay on delivery: {formatCurrency(orderPrice + priorityPrice)}
         </p>
       </div>
+      {!priority && <MakePriority />}
     </div>
   );
 }

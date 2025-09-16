@@ -51,11 +51,14 @@ function CreateOrder() {
           <label className="text-lg font-semibold sm:basis-40">
             Phone number
           </label>
-          <div className="grow">
+          <div className="relative grow">
             <input type="tel" name="phone" required className="input w-full" />
-            <div style={{ color: 'red' }}>
-              {formActionData?.phone && formActionData.phone}
-            </div>
+
+            {formActionData?.phone && (
+              <p className="left-[280px] text-red-600">
+                {formActionData.phone}
+              </p>
+            )}
           </div>
         </div>
 
@@ -105,6 +108,15 @@ function CreateOrder() {
 
         <div>
           <input hidden name="cart" defaultValue={JSON.stringify(cart)} />
+          <input
+            hidden
+            name="position"
+            defaultValue={
+              position.latitude && position.longitude
+                ? `lat=${position.latitude} lng=${position.longitude}`
+                : ''
+            }
+          />
 
           <Button type="primary" disabled={isSubmitting}>
             {isSubmitting
